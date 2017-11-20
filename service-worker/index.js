@@ -3,7 +3,8 @@ import {
   PREPEND,
   VERSION,
   REQUEST_MODE,
-  LENIENT_ERRORS
+  LENIENT_ERRORS,
+  PRE_CACHE_FILES
 } from 'ember-service-worker-asset-cache/service-worker/config';
 import cleanupCaches from 'ember-service-worker/service-worker/cleanup-caches';
 
@@ -11,6 +12,10 @@ const CACHE_KEY_PREFIX = 'esw-asset-cache';
 const CACHE_NAME = `${CACHE_KEY_PREFIX}-${VERSION}`;
 const CACHE_URLS = FILES.map((file) => {
   return new URL(file, (PREPEND || self.location)).toString();
+});
+
+const PRE_CACHE_URLS = (!PRE_CACHE_FILES) ? CACHE_URLS : PRE_CACHE_FILES.map((file) => {
+    return new URL(file, (PREPEND || self.location)).toString();
 });
 
 /*
@@ -34,7 +39,7 @@ self.addEventListener('install', (event) => {
     caches
       .open(CACHE_NAME)
       .then((cache) => {
-        return Promise.all(CACHE_URLS.map((url) => {
+        return Promise.all(PRE_CACHE_URLS.map((url) => {
           let request = new Request(url, { mode: REQUEST_MODE });
           return fetch(request)
             .then((response) => {
